@@ -1,0 +1,208 @@
+100 REM BASIC Month 6: Make a Face
+110 REM http://reddit.com/r/RetroBattlestations
+120 REM written by FozzTexx
+
+200 REM Initialize variables
+210 DIM GD$(5, 5):REM Face grid is 5x5
+220 DIM BK(25, 6):REM There are 25 blocks with up to 6 faces each
+230 DIM TL$(25*6):REM Tiles for each face
+240 DIM CL$(16):REM Codes to print to change color
+250 PRINT "Setting up tiles"
+260 FOR I = 0 TO 24
+270 FOR J = 0 TO 5
+280 TN = I * 6 + J + 1
+290 A$ = CHR$(65+I) + CHR$(49+J) + CHR$(65+I)
+300 TL$(TN) = A$ + A$ + A$
+310 BK(I, J) = TN
+320 NEXT J
+330 Y = INT(I / 5):X = I - Y * 5
+340 GD$(X,Y) = CHR$(65+I) + "1"
+350 NEXT I
+360 OX = 5:OY = 3
+
+REM FIXME - define tiles
+REM FIXME - define blocks
+
+500 REM Face editor
+510 PRINT CHR$(147): REM Clear the screen
+
+REM FIXME - display instructions
+
+520 GOSUB 1310
+530 GX = 0:GY = 0
+540 K$ = "":GOSUB 1510
+
+600 GET K$:IF K$ = "" THEN 600
+610 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 1510
+620 IF K$ = "W" OR K$ = "A" OR K$ = "S" OR K$ = "Z" THEN GOSUB 1610
+630 IF K$ = "F" THEN GOSUB 1810
+640 IF K$ = "E" THEN GOTO 2010
+
+700 GOTO 600
+
+REM FIXME - symmetry
+REM FIXME - asymmetry
+REM FIXME - rotation
+
+999 END
+
+1000 REM Move cursor to X,Y
+1010 POKE 781,Y:POKE 782,X
+1020 POKE 783,0:SYS 65520
+1030 RETURN
+
+1100 REM Display tile TN at GX,GY
+1110 FOR I = 0 TO 2
+1120 X = GX * 3 + OX:Y = GY * 3 + I + OY
+1130 GOSUB 1010
+1140 PRINT MID$(TL$(TN),I*3+1,3);
+1150 NEXT I
+1160 RETURN
+
+1200 REM Display grid location GX,GY
+1210 GS$ = GD$(GX,GY)
+1220 BN = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+1230 TN = BK(BN, FC)
+1240 GOSUB 1110
+1250 RETURN
+
+1300 REM Display entire grid
+1310 FOR GN = 0 TO 24
+1320 GY = INT(GN / 5):GX = GN - GY * 5
+1330 GOSUB 1210
+1340 NEXT GN
+1350 RETURN
+
+1400 REM Display cursor CS$ at GX,GY
+1410 X = GX * 3 + OX:Y = OY - 1:GOSUB 1010:PRINT LEFT$(CS$,3);
+1420 Y = 5 * 3 + OY:GOSUB 1010:PRINT MID$(CS$,4,3);
+1430 FOR I = 0 TO 2
+1440 X = OX - 1:Y = GY * 3 + OY + I:GOSUB 1010:PRINT MID$(CS$,7+I,1);
+1450 X = 5 * 3 + OX:GOSUB 1010:PRINT MID$(CS$,10+I,1);
+1460 NEXT I
+1470 RETURN
+
+1500 REM Move cursor
+1510 IF K$ = "I" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
+1520 IF K$ = "J" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
+1530 IF K$ = "K" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
+1540 IF K$ = "M" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
+1550 IF GX <> NX OR GY <> NY THEN CS$ = "            ":GOSUB 1410
+1560 GX = NX:GY = NY:CS$ = "vvv^^^>>><<<":GOSUB 1410
+1570 RETURN
+
+1600 REM Swap block
+1610 IF K$ = "W" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
+1620 IF K$ = "A" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
+1630 IF K$ = "S" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
+1640 IF K$ = "Z" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
+1650 OB$ = GD$(GX,GY):GD$(GX,GY) = GD$(NX,NY):GD$(NX,NY) = OB$
+1660 GOSUB 1210
+1670 PX = GX:PY = GY:GX = NX:GY = NY
+1680 GOSUB 1210
+1690 REM Restore GX,GY and use move cursor routine to display new cursor position
+1700 GX = PX:GY = PY:GOTO 1510
+
+1800 REM Flip or roll a block
+1810 GS$ = GD$(GX,GY)
+1820 BN = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+1830 FC = FC + 1:IF FC > 5 OR BK(BN,FC) = 0 THEN FC = 0
+1840 GD$(GX,GY) = CHR$(65 + BN) + CHR$(49 + FC)
+1850 REM Display tile and let that subroutine do RETURN
+1860 GOTO 1210
+
+2000 REM Block and tile editor
+2010 PRINT CHR$(147): REM Clear the screen
+2020 GS$ = GD$(GX,GY)
+2030 EB = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+2040 PRINT "BLOCK: ";EB
+
+2100 REM Display all faces of block
+2110 FOR K = 0 TO 5
+2120 GY = INT(K / 3):GX = K - GY * 3
+2130 GY = GY * 2:GX = GX * 2
+2140 TN = BK(EB, K)
+2150 IF TN > 0 THEN GOSUB 1110:X = GX*3+OX:Y = GY*3+OY-1:GOSUB 1010:PRINT TN
+2160 NEXT K
+2170 GX = 0:GY = 0:FC = 0
+2180 GOSUB 2410
+
+2200 FX = 0:FY = 0:K$ = "":GOSUB 2510
+2210 GET K$:IF K$ = "" THEN 2210
+2220 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 2510
+2230 IF K$ = CHR$(13) THEN GOSUB 2710
+2240 IF K$ >= "1" AND K$ <= "6" THEN GOSUB 2910
+2250 IF K$ = "Q" THEN GOTO 510
+2300 GOTO 2210
+
+2400 REM Display tile code of selected face
+2410 TN = BK(EB, FC):IV = 0
+2420 FOR K = 1 TO 9
+2430 FY = INT((K - 1) / 3):FX = K - 1 - FY*3
+2440 GOSUB 2610
+2450 NEXT K
+2460 RETURN
+
+2500 REM Move cursor to another tile square
+2510 IF K$ = "I" THEN NY = FY - 1:IF NY < 0 THEN NY = 2
+2520 IF K$ = "J" THEN NX = FX - 1:IF NX < 0 THEN NX = 2
+2530 IF K$ = "K" THEN NX = FX + 1:IF NX > 2 THEN NX = 0
+2540 IF K$ = "M" THEN NY = FY + 1:IF NY > 2 THEN NY = 0
+2550 IV = 0:GOSUB 2610
+2560 FX = NX:FY = NY
+2570 IV = 1:GOSUB 2610
+2580 RETURN
+
+2600 REM Display tile cursor
+2610 SQ = FY * 3 + FX + 1
+2620 C$ = MID$(TL$(TN), SQ, 1):GOSUB 3010
+2630 X = FX*3 + OX:Y = FY*2 + OY + 11:GOSUB 1010
+2640 IF IV THEN PRINT CHR$(18);
+2650 PRINT D$;CHR$(146);
+2660 RETURN
+
+2700 REM Ask user for encoded character
+2710 X = 5:Y = 20:GOSUB 1010
+2720 PRINT "VALUE: ";
+2730 D$ = ""
+2740 GET KK$:IF KK$ = "" THEN 2740
+2750 K = ASC(KK$) - 32:IF K < 0 OR K > 63 THEN 2740
+2760 PRINT KK$;
+2770 D$ = D$ + KK$:IF LEN(D$) < 2 THEN 2740
+2780 GOSUB 1010:PRINT "                   "
+2790 GOSUB 3110
+2800 SQ = FY * 3 + FX + 1
+2810 T$ = LEFT$(TL$(TN), SQ - 1) + C$ + MID$(TL$(TN), SQ + 1)
+2820 TL$(TN) = T$
+2830 GOSUB 1110
+2840 GOTO 2610:REM Let display tile cursor subroutine do RETURN
+
+2900 REM Choose another face
+2910 FC = ASC(K$) - 49
+2920 GY = INT(FC / 3):GX = FC - GY * 3
+2930 GX = GX * 2:GY = GY * 2
+2940 TN = BK(EB, FC)
+2950 GOSUB 1110:GOSUB 2410
+2960 K$ = "":GOTO 2510 :REM Let display tile code subroutine do RETURN
+
+3000 REM Convert character C$ to encoded D$
+3010 C = ASC(C$)
+3020 IF C >= 160 AND C < 192 THEN C = C - 32
+3030 D = INT((C + 256 - 32 AND 255) / 64)
+3040 C = C - D * 64:REM Remove multiplier from C
+3050 D = (D + 33 AND 63) + 32:REM Make 0 equal A
+3060 D$ = CHR$(C) + CHR$(D)
+3070 RETURN
+
+3100 REM Convert encoded D$ to decoded C$
+3110 C = ASC(D$):D = ASC(MID$(D$, 2))
+3120 D = (D + 64 - 33 AND 63) - 32
+3130 C = (C - 32 + D * 64 AND 127) + 32
+3140 IF C >= 128 AND C < 160 THEN C = C + 32
+3150 C$ = CHR$(C)
+3160 RETURN
+
+REM FIXME - Allow entering new tile code
+REM FIXME - Move around faces
+REM FIXME - Change block
+REM FIXME - Change tile on face
