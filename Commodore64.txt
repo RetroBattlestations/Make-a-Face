@@ -5,21 +5,23 @@
 200 REM Initialize variables
 210 DIM GD$(5, 5):REM Face grid is 5x5
 220 DIM BK(25, 6):REM There are 25 blocks with up to 6 faces each
-230 DIM TL$(25*6):REM Tiles for each face
+230 READ TN:DIM TL$(TN):REM Tiles for each face
 240 DIM CL$(16):REM Codes to print to change color
 250 PD$ = CHR$(0):IV$ = CHR$(18):OV$ = CHR$(146)
 260 PRINT "Setting up tiles"
-270 FOR I = 0 TO 24
-280 FOR J = 0 TO 5
-290 TN = I * 6 + J + 1
-300 A$ = OV$+CHR$(65+I)+PD$ + OV$+CHR$(49+J)+PD$ + OV$+CHR$(65+I)+PD$
-310 TL$(TN) = A$ + A$ + A$
-320 BK(I, J) = TN
-330 NEXT J
-340 Y = INT(I / 5):X = I - Y * 5
-350 GD$(X,Y) = CHR$(65+I) + "1"
-360 NEXT I
-370 OX = 5:OY = 3
+270 GOSUB 3210
+280 FOR I = 0 TO 24
+290 FOR J = 0 TO 5
+300 BK(I, J) = 1
+310 NEXT J
+320 Y = INT(I / 5):X = I - Y * 5
+330 GD$(X,Y) = CHR$(65+I) + "1"
+340 NEXT I
+350 FOR I = 2 TO TN
+360 BK(I, 0) = I
+370 NEXT I
+380 GOSUB 3410
+390 OX = 5:OY = 3
 
 REM FIXME - define tiles
 REM FIXME - define blocks
@@ -205,7 +207,48 @@ REM FIXME - rotation
 3160 C$ = LEFT$(C$ + CHR$(C) + PD$, 3)
 3170 RETURN
 
-REM FIXME - Allow entering new tile code
-REM FIXME - Move around faces
-REM FIXME - Change block
-REM FIXME - Change tile on face
+3200 REM Read tiles from DATA
+3210 FOR I = 1 TO TN
+3220 T$ = ""
+3230 FOR J = 1 TO 9
+3240 READ D$:IF LEN(D$) > 2 THEN D$ = MID$(D$, 2)
+3250 GOSUB 3110
+3260 T$ = T$ + C$
+3270 NEXT J
+3280 TL$(I) = T$
+3290 NEXT I
+3300 RETURN
+
+3400 REM Read blocks from DATA
+3410 READ BN:IF BN = -1 THEN RETURN
+3420 READ TN:FOR I = 1 TO TN
+3430 READ T:BK(BN-1, I-1) = T
+3440 NEXT I
+3450 GOTO 3410
+
+4000 DATA 15 :REM Number of tiles
+4010 DATA " A"," A"," A"," A"," A"," A"," A"," A"," A"
+4020 DATA " A"," A",ID,ID," C"," C"," C"," C"," C"
+4030 DATA " C"," C"," C",IB," A",?B,TB," A",JB
+4040 DATA " C"," C"," C"," C"," A"," C",IB," A",?B
+4050 DATA ?D," A"," A"," C"," C",?D," C"," C"," C"
+4060 DATA " C"," C"," C"," C"," C"," C"," C"," C"," C"
+4070 DATA " A"," A"," A",=B," A",=B,*B,#B,+B
+4080 DATA " C"," C",IB,?B,?D," A"," A",?B," A"
+4090 DATA 5B,#B,)B,."B,1B,."B,*B,#B,+B
+4100 DATA " A",."B," A"," A",."B," A",1B,."B,1B
+4110 DATA ?B," C"," C"," A",ID,IB," A",IB," A"
+4120 DATA 5B,1B,)B,."B," A",."B,*B,#B,+B
+4130 DATA ?D," A"," A"," C",?D," A"," C"," C",?D
+4140 DATA " A"," A"," A",YB,DB,YB,CB,BD,CB
+4150 DATA " A"," A",ID," A",ID," C",ID," C"," C"
+
+5000 REM Which tiles are on which blocks
+5010 DATA 1,1,2, 2,1,3, 3,1,4, 4,1,3
+5020 DATA 5,1,5, 6,1,6, 7,1,7, 8,1,1
+5030 DATA 9,1,7, 10,1,6, 11,1,8, 12,1,9
+5040 DATA 13,1,10, 14,1,9, 15,1,11
+5050 DATA 16,1,12, 17,1,13, 18,1,14
+5060 DATA 19,1,15, 20,1,12, 21,1,1
+5070 DATA 22,1,6, 23,1,1, 24,1,6, 25,1,1
+5080 DATA -1
