@@ -28,12 +28,10 @@
 
 500 REM Face editor
 510 PRINT CHR$(147): REM Clear the screen
-
-REM FIXME - display instructions
-
-520 GOSUB 1310
-530 GX = 0:GY = 0
-540 K$ = "":GOSUB 1510
+520 PRINT CHR$(142);CL$(0):REM Set graphics charset and black text
+530 GOSUB 3610:GOSUB 1310
+540 GX = 0:GY = 0
+550 K$ = "":GOSUB 1510
 
 600 GET K$:IF K$ = "" THEN 600
 610 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 1510
@@ -183,12 +181,13 @@ REM FIXME - display instructions
 2960 K$ = "":GOTO 2510 :REM Let display tile code subroutine do RETURN
 
 3000 REM Convert character C$ to encoded D$
-3010 V = 1 - INT((ASC(C$) - 18) / 128):L = 0:C = ASC(MID$(C$,2))
-3020 IF C AND 127 < 32 THEN L = C:C = ASC(MID$(C$,3))
+3010 V = 1 - INT((ASC(C$) - 18) / 128)
+3020 L$ = MID$(C$,2,1):C = ASC(MID$(C$,3))
+3030 FOR L = 0 TO 15:IF CL$(L) <> L$ THEN NEXT L
 3040 IF C >= 160 AND C < 192 THEN C = C - 32
 3050 D = INT((C + 256 - 32 AND 255) / 64)
 3060 C = C - D * 64:REM Remove multiplier from C
-3070 D = (D + V * 2 + 33 AND 63) + 32:REM Make 0 equal A
+3070 D = (D + V * 2 + L * 4 + 33 AND 63) + 32:REM Make 0 equal A
 3080 D$ = CHR$(C) + CHR$(D)
 3090 RETURN
 
@@ -228,6 +227,31 @@ REM FIXME - display instructions
 3540 CR$ = CR$ + C$:CB$ = CB$ + B$
 3550 NEXT I
 3560 RETURN
+
+3600 REM Display instructions
+3610 X = OX + 5 * 3 + 2 + 4:Y = OY
+3620 GOSUB 1010:PRINT "IJKM TO MOVE"
+3630 X1 = X:X = X + 5:Y = Y + 1
+3640 GOSUB 1010:PRINT "CURSOR"
+3650 X = X1:Y = Y + 1
+3660 GOSUB 1010:PRINT "WASZ TO SWAP"
+3670 Y = Y + 1
+3680 GOSUB 1010:PRINT "F TO FLIP"
+3690 RETURN
+
+3700 REM Load tiles from DATA
+3710 READ TN:DIM TL$(TN):REM Tiles for each face
+3720 PRINT "Setting up tiles"
+3730 GOSUB 3210
+3740 FOR I = 0 TO 24
+3750 FOR J = 0 TO 5
+3760 BK(I, J) = 1
+3770 NEXT J
+3780 Y = INT(I / 5):X = I - Y * 5
+3790 GD$(X,Y) = CHR$(65+I) + "1"
+3800 BK(I, 0) = I
+3810 NEXT I
+3820 RETURN
 
 4000 REM Colors
 4010 DATA 144,5,28,159,156,30,31,158,129,149,150,151,152,153,154,155
