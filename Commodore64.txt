@@ -7,28 +7,22 @@
 220 DIM BK(25, 6):REM There are 25 blocks with up to 6 faces each
 230 DIM CL$(16):REM Codes to print to change color
 240 IV$ = CHR$(18):OV$ = CHR$(146):OC$ = CHR$(154)
-250 FOR I = 0 TO 15
-260 READ CL
-270 CL$(I) = CHR$(CL)
-280 NEXT I
-290 GOSUB 3510
-300 GOSUB 3710
-310 GOSUB 3410
-320 POKE 53281,15
-330 OX = 5:OY = 3
+250 GOSUB 2110:REM Read everything from DATA
+260 POKE 53281,15
+270 OX = 5:OY = 3
 
 500 REM Face editor
 510 PRINT CHR$(147): REM Clear the screen
 520 PRINT CHR$(142);CL$(0):REM Set graphics charset and black text
-530 GOSUB 3610:GOSUB 1310
+530 GOSUB 1910
 540 GX = 0:GY = 0
-550 K$ = "":GOSUB 1510
+550 K$ = "":GOSUB 1410
 
 600 GET K$:IF K$ = "" THEN 600
-610 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 1510
-620 IF K$ = "W" OR K$ = "A" OR K$ = "S" OR K$ = "Z" THEN GOSUB 1610
-630 IF K$ = "F" THEN GOSUB 1810
-640 IF K$ = "E" THEN GOTO 2010
+610 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 1410
+620 IF K$ = "W" OR K$ = "A" OR K$ = "S" OR K$ = "Z" THEN GOSUB 1510
+630 IF K$ = "F" THEN GOSUB 1710
+640 IF K$ = "E" THEN GOTO 3010
 
 700 GOTO 600
 
@@ -52,200 +46,209 @@
 1240 GOSUB 1110
 1250 RETURN
 
-1300 REM Display entire grid
-1310 FOR GN = 0 TO 24
-1320 GY = INT(GN / 5):GX = GN - GY * 5
-1330 GOSUB 1210
-1340 NEXT GN
-1350 RETURN
+1300 REM Display cursor CS$ at GX,GY
+1310 X = GX * 3 + OX:Y = OY - 1:GOSUB 1010:PRINT LEFT$(CS$,9);
+1320 Y = 5 * 3 + OY:GOSUB 1010:PRINT MID$(CS$,10,9);
+1330 FOR I = 0 TO 2
+1340 X = OX - 1:Y = GY * 3 + OY + I:GOSUB 1010:PRINT MID$(CS$,19+I*3,3);
+1350 X = 5 * 3 + OX:GOSUB 1010:PRINT MID$(CS$,28+I*3,3);
+1360 NEXT I
+1370 RETURN
 
-1400 REM Display cursor CS$ at GX,GY
-1410 X = GX * 3 + OX:Y = OY - 1:GOSUB 1010:PRINT LEFT$(CS$,9);
-1420 Y = 5 * 3 + OY:GOSUB 1010:PRINT MID$(CS$,10,9);
-1430 FOR I = 0 TO 2
-1440 X = OX - 1:Y = GY * 3 + OY + I:GOSUB 1010:PRINT MID$(CS$,19+I*3,3);
-1450 X = 5 * 3 + OX:GOSUB 1010:PRINT MID$(CS$,28+I*3,3);
-1460 NEXT I
+1400 REM Move cursor
+1410 IF K$ = "I" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
+1420 IF K$ = "J" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
+1430 IF K$ = "K" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
+1440 IF K$ = "M" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
+1450 IF GX <> NX OR GY <> NY THEN CS$ = CB$:GOSUB 1310
+1460 GX = NX:GY = NY:CS$ = CR$:GOSUB 1310
 1470 RETURN
 
-1500 REM Move cursor
-1510 IF K$ = "I" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
-1520 IF K$ = "J" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
-1530 IF K$ = "K" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
-1540 IF K$ = "M" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
-1550 IF GX <> NX OR GY <> NY THEN CS$ = CB$:GOSUB 1410
-1560 GX = NX:GY = NY:CS$ = CR$:GOSUB 1410
-1570 RETURN
+1500 REM Swap block
+1510 IF K$ = "W" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
+1520 IF K$ = "A" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
+1530 IF K$ = "S" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
+1540 IF K$ = "Z" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
+1550 OB$ = GD$(GX,GY):GD$(GX,GY) = GD$(NX,NY):GD$(NX,NY) = OB$
+1560 GOSUB 1210
+1570 PX = GX:PY = GY:GX = NX:GY = NY
+1580 GOSUB 1210
+1590 REM Restore GX,GY and let move cursor routine do RETURN
+1600 GX = PX:GY = PY:GOTO 1410
 
-1600 REM Swap block
-1610 IF K$ = "W" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
-1620 IF K$ = "A" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
-1630 IF K$ = "S" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
-1640 IF K$ = "Z" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
-1650 OB$ = GD$(GX,GY):GD$(GX,GY) = GD$(NX,NY):GD$(NX,NY) = OB$
-1660 GOSUB 1210
-1670 PX = GX:PY = GY:GX = NX:GY = NY
-1680 GOSUB 1210
-1690 REM Restore GX,GY and let move cursor routine do RETURN
-1700 GX = PX:GY = PY:GOTO 1510
+1700 REM Flip or roll a block
+1710 GS$ = GD$(GX,GY)
+1720 BN = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+1730 FC = FC + 1:IF FC > 5 OR BK(BN,FC) = 0 THEN FC = 0
+1740 GD$(GX,GY) = CHR$(65 + BN) + CHR$(49 + FC)
+1750 REM Display tile and let that subroutine do RETURN
+1760 GOTO 1210
 
-1800 REM Flip or roll a block
-1810 GS$ = GD$(GX,GY)
-1820 BN = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
-1830 FC = FC + 1:IF FC > 5 OR BK(BN,FC) = 0 THEN FC = 0
-1840 GD$(GX,GY) = CHR$(65 + BN) + CHR$(49 + FC)
-1850 REM Display tile and let that subroutine do RETURN
-1860 GOTO 1210
+1800 REM Convert encoded D$ to decoded C$
+1810 C = ASC(D$):D = ASC(MID$(D$, 2))
+1820 D = (D - 1) AND 63
+1830 CL = INT(D / 4):D = D AND 3
+1840 C = (C - 32 + D * 64 AND 127) + 32
+1850 C$ = OV$:IF D >= 2 THEN C$ = IV$
+1860 IF C >= 128 AND C < 160 THEN C = C + 32
+1870 C$ = C$ + CL$(CL) + CHR$(C)
+1880 RETURN
 
-2000 REM Block and tile editor
-2010 PRINT CHR$(147): REM Clear the screen
-2020 GS$ = GD$(GX,GY)
-2030 EB = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
-2040 PRINT "BLOCK: ";EB
+1900 REM Display instructions and grid
+1910 X = OX + 5 * 3 + 2 + 4:Y = OY
+1920 GOSUB 1010:PRINT "IJKM TO MOVE"
+1930 X1 = X:X = X + 5:Y = Y + 1
+1940 GOSUB 1010:PRINT "CURSOR"
+1950 X = X1:Y = Y + 1
+1960 GOSUB 1010:PRINT "WASZ TO SWAP"
+1970 Y = Y + 1
+1980 GOSUB 1010:PRINT "F TO FLIP"
 
-2100 REM Display all faces of block
-2110 FOR K = 0 TO 5
-2120 GY = INT(K / 3):GX = K - GY * 3
-2130 GY = GY * 2:GX = GX * 2
-2140 TN = BK(EB, K)
-2150 IF TN > 0 THEN GOSUB 1110:X = GX*3+OX:Y = GY*3+OY-1:GOSUB 1010:PRINT TN
-2160 NEXT K
-2170 GX = 0:GY = 0:FC = 0
-2180 GOSUB 2410
+2000 REM Display entire grid
+2010 FOR GN = 0 TO 24
+2020 GY = INT(GN / 5):GX = GN - GY * 5
+2030 GOSUB 1210
+2040 NEXT GN
+2050 RETURN
 
-2200 FX = 0:FY = 0:K$ = "":GOSUB 2510
-2210 GET K$:IF K$ = "" THEN 2210
-2220 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 2510
-2230 IF K$ = CHR$(13) THEN GOSUB 2710
-2240 IF K$ >= "1" AND K$ <= "6" THEN GOSUB 2910
-2250 IF K$ = "Q" THEN GOTO 510
-2300 GOTO 2210
+2100 REM Read colors, cursor, tiles, blocks from DATA
+2110 PRINT "Setting up tiles"
+2120 MX = 16 + 12 + 150 * 9 + 25 * 6 + 25:LC = 0
+2130 FOR I = 0 TO 15
+2140 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
+2150 READ CL
+2160 CL$(I) = CHR$(CL)
+2170 LC = LC + 1
+2180 NEXT I
 
-2400 REM Display tile code of selected face
-2410 TN = BK(EB, FC):IV = 0
-2420 FOR K = 1 TO 9
-2430 FY = INT((K - 1) / 3):FX = K - 1 - FY*3
-2440 GOSUB 2610
-2450 NEXT K
-2460 RETURN
+2190 REM Read grid cursor from DATA
+2200 CR$ = "":CB$ = "":B$ = " " + CHR$(0) + CHR$(0)
+2210 FOR I = 1 TO 12
+2220 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
+2230 READ D$:GOSUB 1810
+2240 CR$ = CR$ + C$:CB$ = CB$ + B$
+2250 LC = LC + 1
+2260 NEXT I
 
-2500 REM Move cursor to another tile square
-2510 IF K$ = "I" THEN NY = FY - 1:IF NY < 0 THEN NY = 2
-2520 IF K$ = "J" THEN NX = FX - 1:IF NX < 0 THEN NX = 2
-2530 IF K$ = "K" THEN NX = FX + 1:IF NX > 2 THEN NX = 0
-2540 IF K$ = "M" THEN NY = FY + 1:IF NY > 2 THEN NY = 0
-2550 IV = 0:GOSUB 2610
-2560 FX = NX:FY = NY
-2570 IV = 1:GOSUB 2610
-2580 RETURN
+2270 REM Load tiles from DATA
+2280 READ TN:DIM TL$(TN):REM Tiles for each face
+2290 MX = 16 + 12 + TN * 9 + 25 * 6 + 25
+2300 FOR I = 1 TO TN
+2310 T$ = ""
+2320 FOR J = 1 TO 9
+2330 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
+2340 READ D$:IF LEN(D$) > 2 THEN D$ = MID$(D$, 2)
+2350 GOSUB 1810
+2360 T$ = T$ + C$
+2370 LC = LC + 1
+2380 NEXT J
+2390 TL$(I) = T$
+2400 NEXT I
 
-2600 REM Display tile cursor
-2610 SQ = FY * 3 + FX
-2620 C$ = MID$(TL$(TN), SQ*3+1, 3):GOSUB 3010
-2630 X = FX*3 + OX:Y = FY*2 + OY + 11:GOSUB 1010
-2640 IF IV THEN PRINT IV$;
-2650 PRINT D$;OV$;
-2660 RETURN
+2410 FOR I = 0 TO 24
+2420 FOR J = 0 TO 5
+2430 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
+2440 BK(I, J) = 1
+2450 LC = LC + 1
+2460 NEXT J
+2470 Y = INT(I / 5):X = I - Y * 5
+2480 GD$(X,Y) = CHR$(65+I) + "1"
+2490 BK(I, 0) = I
+2500 NEXT I
 
-2700 REM Ask user for encoded character
-2710 X = 5:Y = 20:GOSUB 1010
-2720 PRINT "VALUE: ";
-2730 D$ = ""
-2740 GET KK$:IF KK$ = "" THEN 2740
-2750 K = ASC(KK$) - 32:IF K < 0 OR K > 63 THEN 2740
-2760 PRINT KK$;
-2770 D$ = D$ + KK$:IF LEN(D$) < 2 THEN 2740
-2780 GOSUB 1010:PRINT "                   "
-2790 GOSUB 3110
-2800 SQ = FY * 3 + FX
-2810 T$ = LEFT$(TL$(TN), SQ*3) + C$ + MID$(TL$(TN), SQ*3+4)
-2820 TL$(TN) = T$
-2830 GOSUB 1110
-2840 GOTO 2610:REM Let display tile cursor subroutine do RETURN
+2510 REM Read blocks from DATA
+2520 READ BN:IF BN = -1 THEN RETURN
+2530 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
+2540 READ TN:FOR I = 1 TO TN
+2550 READ T:BK(BN-1, I-1) = T
+2560 LC = LC + 1
+2570 NEXT I
+2580 GOTO 2520
 
-2900 REM Choose another face
-2910 FC = ASC(K$) - 49
-2920 GY = INT(FC / 3):GX = FC - GY * 3
-2930 GX = GX * 2:GY = GY * 2
-2940 TN = BK(EB, FC)
-2950 GOSUB 1110:GOSUB 2410
-2960 K$ = "":GOTO 2510 :REM Let display tile code subroutine do RETURN
+3000 REM Lines 3000-3990 are the optional block and tile editor
+3010 PRINT CHR$(147): REM Clear the screen
+3020 GS$ = GD$(GX,GY)
+3030 EB = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+3040 PRINT "BLOCK: ";EB
 
-3000 REM Convert character C$ to encoded D$
-3010 V = 1 - INT((ASC(C$) - 18) / 128)
-3020 L$ = MID$(C$,2,1):C = ASC(MID$(C$,3))
-3030 FOR L = 0 TO 15:IF CL$(L) <> L$ THEN NEXT L
-3040 IF C >= 160 AND C < 192 THEN C = C - 32
-3050 D = INT((C + 256 - 32 AND 255) / 64)
-3060 C = C - D * 64:REM Remove multiplier from C
-3070 D = (D + V * 2 + L * 4 + 33 AND 63) + 32:REM Make 0 equal A
-3080 D$ = CHR$(C) + CHR$(D)
-3090 RETURN
+3100 REM Display all faces of block
+3110 FOR K = 0 TO 5
+3120 GY = INT(K / 3):GX = K - GY * 3
+3130 GY = GY * 2:GX = GX * 2
+3140 TN = BK(EB, K)
+3150 IF TN > 0 THEN GOSUB 1110:X = GX*3+OX:Y = GY*3+OY-1:GOSUB 1010:PRINT TN
+3160 NEXT K
+3170 GX = 0:GY = 0:FC = 0
+3180 GOSUB 3310
 
-3100 REM Convert encoded D$ to decoded C$
-3110 C = ASC(D$):D = ASC(MID$(D$, 2))
-3120 D = (D - 1) AND 63
-3130 CL = INT(D / 4):D = D AND 3
-3140 C = (C - 32 + D * 64 AND 127) + 32
-3150 C$ = OV$:IF D >= 2 THEN C$ = IV$
-3160 IF C >= 128 AND C < 160 THEN C = C + 32
-3170 C$ = C$ + CL$(CL) + CHR$(C)
-3180 RETURN
+3200 FX = 0:FY = 0:K$ = "":GOSUB 3410
+3210 GET K$:IF K$ = "" THEN 3200
+3220 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 3410
+3230 IF K$ = CHR$(13) THEN GOSUB 3610
+3240 IF K$ >= "1" AND K$ <= "6" THEN GOSUB 3810
+3250 IF K$ = "Q" THEN GOTO 510
+3260 GOTO 3210
 
-3400 REM Read blocks from DATA
-3410 READ BN:IF BN = -1 THEN RETURN
-3420 READ TN:FOR I = 1 TO TN
-3430 READ T:BK(BN-1, I-1) = T
-3440 NEXT I
-3450 GOTO 3410
+3300 REM Display tile code of selected face
+3310 TN = BK(EB, FC):IV = 0
+3320 FOR K = 1 TO 9
+3330 FY = INT((K - 1) / 3):FX = K - 1 - FY*3
+3340 GOSUB 3510
+3350 NEXT K
+3360 RETURN
 
-3500 REM Read grid cursor from DATA
-3510 CR$ = "":CB$ = "":B$ = " " + CHR$(0) + CHR$(0)
-3520 FOR I = 1 TO 12
-3530 READ D$:GOSUB 3110
-3540 CR$ = CR$ + C$:CB$ = CB$ + B$
-3550 NEXT I
+3400 REM Move cursor to another tile square
+3410 IF K$ = "I" THEN NY = FY - 1:IF NY < 0 THEN NY = 2
+3420 IF K$ = "J" THEN NX = FX - 1:IF NX < 0 THEN NX = 2
+3430 IF K$ = "K" THEN NX = FX + 1:IF NX > 2 THEN NX = 0
+3440 IF K$ = "M" THEN NY = FY + 1:IF NY > 2 THEN NY = 0
+3450 IV = 0:GOSUB 3510
+3460 FX = NX:FY = NY
+3470 IV = 1:GOSUB 3510
+3480 RETURN
+
+3500 REM Display tile cursor
+3510 SQ = FY * 3 + FX
+3520 C$ = MID$(TL$(TN), SQ*3+1, 3):GOSUB 3910
+3530 X = FX*3 + OX:Y = FY*2 + OY + 11:GOSUB 1010
+3540 IF IV THEN PRINT IV$;
+3550 PRINT D$;OV$;
 3560 RETURN
 
-3600 REM Display instructions
-3610 X = OX + 5 * 3 + 2 + 4:Y = OY
-3620 GOSUB 1010:PRINT "IJKM TO MOVE"
-3630 X1 = X:X = X + 5:Y = Y + 1
-3640 GOSUB 1010:PRINT "CURSOR"
-3650 X = X1:Y = Y + 1
-3660 GOSUB 1010:PRINT "WASZ TO SWAP"
-3670 Y = Y + 1
-3680 GOSUB 1010:PRINT "F TO FLIP"
-3690 RETURN
+3600 REM Ask user for encoded character
+3610 X = 5:Y = 20:GOSUB 1010
+3620 PRINT "VALUE: ";
+3630 D$ = ""
+3640 GET KK$:IF KK$ = "" THEN 3640
+3650 K = ASC(KK$) - 32:IF K < 0 OR K > 63 THEN 3640
+3660 PRINT KK$;
+3670 D$ = D$ + KK$:IF LEN(D$) < 2 THEN 3640
+3680 GOSUB 1010:PRINT "                   "
+3690 GOSUB 1810
+3700 SQ = FY * 3 + FX
+3710 T$ = LEFT$(TL$(TN), SQ*3) + C$ + MID$(TL$(TN), SQ*3+4)
+3720 TL$(TN) = T$
+3730 GOSUB 1110
+3740 GOTO 3510:REM Let display tile cursor subroutine do RETURN
 
-3700 REM Load tiles from DATA
-3710 READ TN:DIM TL$(TN):REM Tiles for each face
-3720 PRINT "Setting up tiles"
-3730 MX = TN * 9 + 25 * 6 + 25:LC = 0
+3800 REM Choose another face
+3810 FC = ASC(K$) - 49
+3820 GY = INT(FC / 3):GX = FC - GY * 3
+3830 GX = GX * 2:GY = GY * 2
+3840 TN = BK(EB, FC)
+3850 GOSUB 1110:GOSUB 3310
+3860 K$ = "":GOTO 3410 :REM Let display tile code subroutine do RETURN
 
-3740 FOR I = 1 TO TN
-3750 T$ = ""
-3760 FOR J = 1 TO 9
-3770 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
-3780 READ D$:IF LEN(D$) > 2 THEN D$ = MID$(D$, 2)
-3790 GOSUB 3110
-3800 T$ = T$ + C$
-3810 LC = LC + 1
-3820 NEXT J
-3830 TL$(I) = T$
-3840 NEXT I
-
-3850 FOR I = 0 TO 24
-3860 FOR J = 0 TO 5
-3870 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
-3880 BK(I, J) = 1
-3890 LC = LC + 1
-3900 NEXT J
-3910 Y = INT(I / 5):X = I - Y * 5
-3920 GD$(X,Y) = CHR$(65+I) + "1"
-3930 BK(I, 0) = I
-3940 NEXT I
-3950 RETURN
+3900 REM Convert character C$ to encoded D$
+3910 V = 1 - INT((ASC(C$) - 18) / 128)
+3920 L$ = MID$(C$,2,1):C = ASC(MID$(C$,3))
+3930 FOR L = 0 TO 15:IF CL$(L) <> L$ THEN NEXT L
+3940 IF C >= 160 AND C < 192 THEN C = C - 32
+3950 D = INT((C + 256 - 32 AND 255) / 64)
+3960 C = C - D * 64:REM Remove multiplier from C
+3970 D = (D + V * 2 + L * 4 + 33 AND 63) + 32:REM Make 0 equal A
+3980 D$ = CHR$(C) + CHR$(D)
+3990 RETURN
 
 4000 REM Colors
 4010 DATA 144,5,28,159,156,30,31,158,129,149,150,151,152,153,154,155
