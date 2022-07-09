@@ -6,12 +6,12 @@
 210 DIM GD$(5, 5):REM Face grid is 5x5
 220 DIM BK(25, 6):REM There are 25 blocks with up to 6 faces each
 230 DIM CL$(16):REM Codes to print to change color
-240 FOR I = 0 TO 15
-250 READ CL
-260 CL$(I) = CHR$(CL)
-270 NEXT I
-280 READ TN:DIM TL$(TN):REM Tiles for each face
-290 PD$ = CHR$(0):IV$ = CHR$(18):OV$ = CHR$(146):OC$ = CHR$(154)
+240 IV$ = CHR$(18):OV$ = CHR$(146):OC$ = CHR$(154)
+250 FOR I = 0 TO 15
+260 READ CL
+270 CL$(I) = CHR$(CL)
+280 NEXT I:GOSUB 3510
+290 READ TN:DIM TL$(TN):REM Tiles for each face
 300 PRINT "Setting up tiles"
 310 GOSUB 3210
 320 FOR I = 0 TO 24
@@ -71,11 +71,11 @@ REM FIXME - display instructions
 1350 RETURN
 
 1400 REM Display cursor CS$ at GX,GY
-1410 X = GX * 3 + OX:Y = OY - 1:GOSUB 1010:PRINT LEFT$(CS$,3);
-1420 Y = 5 * 3 + OY:GOSUB 1010:PRINT MID$(CS$,4,3);
+1410 X = GX * 3 + OX:Y = OY - 1:GOSUB 1010:PRINT LEFT$(CS$,9);
+1420 Y = 5 * 3 + OY:GOSUB 1010:PRINT MID$(CS$,10,9);
 1430 FOR I = 0 TO 2
-1440 X = OX - 1:Y = GY * 3 + OY + I:GOSUB 1010:PRINT MID$(CS$,7+I,1);
-1450 X = 5 * 3 + OX:GOSUB 1010:PRINT MID$(CS$,10+I,1);
+1440 X = OX - 1:Y = GY * 3 + OY + I:GOSUB 1010:PRINT MID$(CS$,19+I*3,3);
+1450 X = 5 * 3 + OX:GOSUB 1010:PRINT MID$(CS$,28+I*3,3);
 1460 NEXT I
 1470 RETURN
 
@@ -84,8 +84,8 @@ REM FIXME - display instructions
 1520 IF K$ = "J" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
 1530 IF K$ = "K" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
 1540 IF K$ = "M" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
-1550 IF GX <> NX OR GY <> NY THEN CS$ = "            ":GOSUB 1410
-1560 GX = NX:GY = NY:CS$ = "vvv^^^>>><<<":GOSUB 1410
+1550 IF GX <> NX OR GY <> NY THEN CS$ = CB$:GOSUB 1410
+1560 GX = NX:GY = NY:CS$ = CR$:GOSUB 1410
 1570 RETURN
 
 1600 REM Swap block
@@ -221,8 +221,19 @@ REM FIXME - display instructions
 3440 NEXT I
 3450 GOTO 3410
 
+3500 REM Read grid cursor from DATA
+3510 CR$ = "":CB$ = "":B$ = " " + CHR$(0) + CHR$(0)
+3520 FOR I = 1 TO 12
+3530 READ D$:GOSUB 3110
+3540 CR$ = CR$ + C$:CB$ = CB$ + B$
+3550 NEXT I
+3560 RETURN
+
 4000 REM Colors
 4010 DATA 144,5,28,159,156,30,31,158,129,149,150,151,152,153,154,155
+
+4100 REM Grid cursor
+4110 DATA BB,BB,BB,BD,BD,BD,AD,AD,AD,AB,AB,AB
 
 5000 DATA 37 :REM Number of tiles
 5010 DATA " A"," A"," A"," A"," A"," A"," A"," A"," A"
