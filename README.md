@@ -61,6 +61,7 @@ See [List of Computers With On-Board BASIC](https://en.wikipedia.org/wiki/List_o
 * Add a way to save and load faces
 * Use shapes on Apple II instead of text
 * Make it run faster without resorting to assembly or unreadable code
+* A way to print to hardcopy
 
 ## Typing Tips ##
 
