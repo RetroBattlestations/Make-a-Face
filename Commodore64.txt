@@ -148,22 +148,21 @@
 2410 FOR I = 0 TO 24
 2420 FOR J = 0 TO 5
 2430 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
-2440 BK(I, J) = 1
+2440 BK(I, J) = 0
 2450 LC = LC + 1
 2460 NEXT J
 2470 Y = INT(I / 5):X = I - Y * 5
 2480 GD$(X,Y) = CHR$(65+I) + "1"
-2490 BK(I, 0) = I
-2500 NEXT I
+2490 NEXT I
 
-2510 REM Read blocks from DATA
-2520 READ BN:IF BN = -1 THEN RETURN
-2530 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
-2540 READ TN:FOR I = 1 TO TN
-2550 READ T:BK(BN-1, I-1) = T
-2560 LC = LC + 1
-2570 NEXT I
-2580 GOTO 2520
+2500 REM Read blocks from DATA
+2510 READ BN:IF BN = -1 THEN RETURN
+2520 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";CHR$(13);CHR$(145);
+2530 READ TN:FOR I = 1 TO TN
+2540 READ T:BK(BN-1, I-1) = T
+2550 LC = LC + 1
+2560 NEXT I
+2570 GOTO 2510
 
 3000 REM Lines 3000-3990 are the optional block and tile editor
 3010 PRINT CHR$(147): REM Clear the screen
@@ -256,55 +255,87 @@
 4100 REM Grid cursor
 4110 DATA BB,BB,BB,BD,BD,BD,AD,AD,AD,AB,AB,AB
 
-5000 DATA 37 :REM Number of tiles
+5000 DATA 61 :REM Number of tiles
 5010 DATA " A"," A"," A"," A"," A"," A"," A"," A"," A"
 5020 DATA " ="," =",IL,IL," K"," K"," K"," K"," K"
 5030 DATA " K"," K"," K",IJ," =",?J,TJ," =",JJ
-5040 DATA " K"," K"," K"," K"," ="," K",IJ," =",?J
+5040 DATA " K"," K"," K"," K",=L," K",IJ," =",?J
 5050 DATA ?L," ="," ="," K"," K",?L," K"," K"," K"
-5060 DATA " K"," K"," K"," K"," K"," K"," K"," K"," K"
-5070 DATA " ="," ="," =",=B," =",=B,*B,#B,+B
-5080 DATA " ="," ="," ="," ="," ="," ="," ="," ="," ="
-5090 DATA " K"," K",IJ," K",IJ," =",?J,?L," ="
-5100 DATA 5F,#F,)F,."F,1B,."F,*F,#F,+F
-5110 DATA " =",."B," ="," =",."B," =",1B,."B,1B
-5120 DATA ?J," K"," K"," =",?J," K"," =",IL,IJ
-5130 DATA 5B,1B,)B,."B," =",."B,*B,#B,+B
-5140 DATA ?L," ="," ="," K",?L," ="," K"," K",?L
-5150 DATA " ="," ="," =",LJ,YJ,[J,XJ,OL,XJ
-5160 DATA " ="," =",IL," =",IL," K",IL," K"," K"
-5170 DATA IL," K",?L," K"," K"," K",?J," K",IJ
-5180 DATA ?J," K"," K"," ="," K"," K"," =",?J," K"
-5190 DATA " K"," K",IJ," K"," K"," ="," K",IJ," ="
-5200 DATA " =",IL," K"," ="," K"," K"," =",?J," K"
-5210 DATA " =",IL," K"," ="," K"," K",IL," K"," K"
-5220 DATA " K",?L," ="," K"," K"," ="," K"," K",?L
-5230 DATA " K"," K"," K",?J," K"," K"," ="," =",?J
-5240 DATA " K"," K"," K"," K"," K",IJ,IJ," ="," ="
-5250 DATA " K"," K"," K",?J," K",IJ," ="," ="," ="
-5260 DATA IL,IJ," ="," K",?L," ="," K"," K",?L
-5270 DATA " =",?J,?L," =",IL," K",IL," K"," K"
-5280 DATA IL," K"," K",IJ,?J," K"," ="," =",?J
-5290 DATA " K"," K",?L," K",IJ,?J,IJ," ="," ="
-5300 DATA " ="," ="," =",IL," K",?L," K"," K"," K"
-5310 DATA " ="," =",IL,?L,IL," K",?J," K"," K"
-5320 DATA ?L," ="," ="," K",?L,IL," K"," K",IJ
-5330 DATA " K",?L," ="," K"," K"," ="," K",IJ," ="
-5340 DATA 5F,#F,)F,."F," =",."F,*F,YD,+F
-5350 DATA 5F,XD,)F,."F," =",."F,*F,#F,+F
-5360 DATA 5F,#F,)F,."F," =",GD,*F,#F,+F
-5370 DATA 5F,#F,)F,ED," =",."F,*F,#F,+F
+5060 DATA " ="," ="," ="," ="," ="," ="," ="," ="," ="
+5070 DATA " ="," =",ID,ID," C"," C"," C"," C"," C"
+5080 DATA " C"," C"," C"," C",=D," C",IB," =",?B
+5090 DATA ?D," ="," ="," C"," C",?D," C"," C"," C"
+5100 DATA " K"," K"," K"," K"," K"," K"," K"," K"," K"
+5110 DATA " ="," ="," =",=B," =",=B,*B,#B,+B
+5120 DATA " =",ID," C"," ="," C"," C",ID," C"," C"
+5130 DATA " C"," C"," C"," C"," C",AB," C",BD," ="
+5140 DATA " C"," C"," C",AD," C"," C"," =",BD," C"
+5150 DATA " C",?D," ="," C"," C"," ="," C"," C",?D
+5160 DATA " K"," K",IJ," K",IJ," =",?J,?L," ="
+5170 DATA " =",."B," ="," =",."B," =",1B,."B,1B
+5180 DATA ?J," K"," K"," =",?J," K"," =",IL,IJ
+5190 DATA " C"," C",IB," C"," C"," ="," C"," C",?D
+5200 DATA 5F,#F,)F,."F," =",VD,*F,#F,+F
+5210 DATA 5F,#F,)F,UD," =",."F,*F,#F,+F
+5220 DATA ?B," C"," C"," ="," C"," C",ID," C"," C"
+5230 DATA 5B,1B,)B,."B," =",."B,*B,#B,+B
+5240 DATA ?L," ="," ="," K",?L," ="," K"," K",?L
+5250 DATA " ="," ="," =",LJ,YJ,[J,XJ,OL,XJ
+5260 DATA " ="," =",IL," =",IL," K",IL," K"," K"
+5270 DATA " C"," C"," C"," C"," C"," C"," C"," C"," C"
+5280 DATA AB," ="," ="," C"," ="," ="," C"," C",BB
+5290 DATA " ="," =",AD," ="," ="," C",BB," C"," C"
+5300 DATA ?D," =",ID," C",."D," C",IB," =",?B
+5310 DATA LJ,XL,[J,EL," K",GL,\J,OL,^J
+5320 DATA ID,IB," ="," C",?D," ="," C"," C",?D
+5330 DATA " =",BB," C",AD," C"," C"," C"," C"," C"
+5340 DATA " C",BB," ="," C"," C",AB," C"," C"," C"
+5350 DATA " =",?B,?D," =",ID," C",ID," C"," C"
+5360 DATA " C"," C"," C",?B," C"," C"," ="," =",?B
+5370 DATA " C"," C"," C"," C"," C",IB,IB," ="," ="
+5380 DATA " C"," C"," C"," C",":D"," C"," C"," C"," C"
+5390 DATA " =",IL," K"," ="," K"," K",IL," K"," K"
+5400 DATA " ="," ="," =",IH," G",?D," ="," ="," ="
+5410 DATA " =",=B," ="," ="," C"," =",UD," C",VD
+5420 DATA " K",?L," ="," K"," K"," ="," K"," K",?L
+5430 DATA \B,OD,^B," ="," ="," ="," ="," ="," ="
+5440 DATA " =",=B," ="," =",=B," =",1B,=B,1B
+5450 DATA " K"," K"," K"," K"," K"," K",IJ," =",?J
+5460 DATA " K"," K"," K",AL," K"," K"," =",BL," K"
+5470 DATA ?L," =",IL," K"," K"," K"," K"," K"," K"
+5480 DATA " K"," K"," K"," K"," K",AJ," K",BL," ="
+5490 DATA BL," K"," K"," =",\J," K"," ="," =",AL
+5500 DATA " K"," K",BL," K",^J," =",AJ," ="," ="
+5510 DATA AJ," ="," ="," K",[J," ="," K"," K",BJ
+5520 DATA " ="," =",AL," =",LJ," K",BJ," K"," K"
+5530 DATA " K",BJ," ="," K"," K",AJ," K"," K"," K"
+5540 DATA " K"," K",IJ," K"," K"," ="," K"," K",?L
+5550 DATA " C"," C",IB," C",IB," =",?B,?D," ="
+5560 DATA ?D," =",ID," C",=D," C",IB," =",?B
+5570 DATA ?B," C"," C"," =",?B," C"," =",ID,IB
+5580 DATA " ="," ="," =",LJ,YJ,[J,XJ," K",XJ
+5590 DATA " C"," C",BD," C",^B," ="," ="," ="," ="
+5600 DATA " ="," ="," ="," =",":B"," ="," ="," ="," ="
+5610 DATA BD," C"," C"," =",\B," C"," ="," =",AD
 
 6000 REM Which tiles are on which blocks
-6010 DATA 1,2,2,17, 2,2,3,18, 3,2,4,19
-6020 DATA 4,2,3,2, 5,2,5,5, 6,2,6,20
-6030 DATA 7,2,7,21, 8,2,8,22, 9,2,7,23
-6040 DATA 10,2,6,24, 11,2,9,25
-6050 DATA 12,2,10,26, 13,2,11,27
-6060 DATA 14,2,10,28, 15,2,12,29
-6070 DATA 16,2,13,30, 17,2,14,9
-6080 DATA 18,2,15,12, 19,2,16,31
-6090 DATA 20,2,13,32, 21,2,8,33
-6100 DATA 22,2,6,34, 23,2,8,35
-6110 DATA 24,2,6,36, 25,2,8,37
-6120 DATA -1
+6010 DATA 1,5,2,7,37,42,59
+6020 DATA 2,4,3,8,39,55, 3,4,4,9,40,10
+6030 DATA 4,5,3,12,41,39,52
+6040 DATA 5,4,5,13,40,56, 6,3,10,14,42
+6050 DATA 7,5,11,15,2,45,10, 8,3,6,32,51
+6060 DATA 9,6,11,19,4,42,60,10
+6070 DATA 10,4,10,20,35,53
+6080 DATA 11,4,16,21,5,10, 12,3,6,33,52
+6090 DATA 13,4,17,31,38,57
+6100 DATA 14,4,6,34,33,40
+6110 DATA 15,6,18,22,16,49,61,6
+6120 DATA 16,4,23,27,44,54
+6130 DATA 17,4,24,28,46,50
+6140 DATA 18,4,25,36,43,31
+6150 DATA 19,6,26,29,47,46,34,48
+6160 DATA 20,4,23,27,43,52
+6170 DATA 21,4,6,27,34,51, 22,3,10,27,44
+6180 DATA 23,4,6,30,48,58, 24,3,10,27,43
+6190 DATA 25,5,6,27,18,33,10
+6200 DATA -1
