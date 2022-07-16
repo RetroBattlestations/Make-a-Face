@@ -1,0 +1,321 @@
+100 REM BASIC Month 7: Make-a-Face
+110 REM http://RetroBattlestations.com
+120 REM written by FozzTexx
+
+200 REM Initialize variables
+210 DIM GD$(5, 5):REM Face grid is 5x5
+220 DIM BK(25, 6):REM There are 25 blocks with up to 6 faces each
+230 OX = 5:OY = 3
+240 TILEX = 6:TILEY = 3
+250 SQCH = 2:BGCOL = 7
+260 GOSUB 2110:REM Read everything from DATA
+
+500 REM Face editor
+510 COLOR 0,BGCOL:CLS
+520 GOSUB 1910
+530 GX = 0:GY = 0
+540 K$ = "":GOSUB 1410
+
+600 K$ = INKEY$:IF K$ = "" THEN 600
+610 IF K$ >= "a" AND K$ <= "z" THEN K$ = CHR$(ASC(K$) - 32)
+620 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 1410
+630 IF K$ = "W" OR K$ = "A" OR K$ = "S" OR K$ = "Z" THEN GOSUB 1510
+640 IF K$ = "F" THEN GOSUB 1710
+650 IF K$ = "E" THEN GOTO 3010
+
+700 GOTO 600
+
+1000 REM Move cursor to X,Y
+1010 LOCATE Y,X
+1020 RETURN
+
+1100 REM Display tile TN at GX,GY
+1110 FOR I = 0 TO TILEY - 1
+1120 X = GX * TILEX + OX:Y = GY * TILEY + I + OY
+1130 GOSUB 1010
+1140 FOR J = 0 TO TILEX - 1
+1150 FGCOL = ASC(MID$(TL$(TN),(I*TILEX+J)*SQCH+1))
+1160 COLOR FGCOL,BGCOL:PRINT MID$(TL$(TN),(I*TILEX+J)*SQCH+2,1);
+1170 NEXT J,I
+1180 RETURN
+
+1200 REM Display grid location GX,GY
+1210 GS$ = GD$(GX,GY)
+1220 BN = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+1230 TN = BK(BN, FC)
+1240 GOSUB 1110
+1250 RETURN
+
+1300 REM Display cursor CS$ at GX,GY
+1310 COLOR 10,BGCOL
+1320 X = GX * TILEX + OX:Y = OY - 1:GOSUB 1010:PRINT LEFT$(CS$,TILEX);
+1330 Y = 5 * TILEY + OY:GOSUB 1010:PRINT MID$(CS$,TILEX+1,TILEX);
+1340 FOR I = 0 TO TILEY - 1
+1350 X = OX - 1:Y = GY * TILEY + OY + I:GOSUB 1010:PRINT MID$(CS$,I+TILEX*2+1,1);
+1360 X = 5 * TILEX + OX:GOSUB 1010:PRINT MID$(CS$,I+TILEX*2+TILEY+1,1);
+1370 NEXT I
+1380 RETURN
+
+1400 REM Move cursor
+1410 IF K$ = "I" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
+1420 IF K$ = "J" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
+1430 IF K$ = "K" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
+1440 IF K$ = "M" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
+1450 IF GX <> NX OR GY <> NY THEN CS$ = CB$:GOSUB 1310
+1460 GX = NX:GY = NY:CS$ = CR$:GOSUB 1310
+1470 RETURN
+
+1500 REM Swap block
+1510 IF K$ = "W" THEN NY = GY - 1:IF NY < 0 THEN NY = 4
+1520 IF K$ = "A" THEN NX = GX - 1:IF NX < 0 THEN NX = 4
+1530 IF K$ = "S" THEN NX = GX + 1:IF NX > 4 THEN NX = 0
+1540 IF K$ = "Z" THEN NY = GY + 1:IF NY > 4 THEN NY = 0
+1550 OB$ = GD$(GX,GY):GD$(GX,GY) = GD$(NX,NY):GD$(NX,NY) = OB$
+1560 GOSUB 1210
+1570 PX = GX:PY = GY:GX = NX:GY = NY
+1580 GOSUB 1210
+1590 REM Restore GX,GY and let move cursor routine do RETURN
+1600 GX = PX:GY = PY:GOTO 1410
+
+1700 REM Flip or roll a block
+1710 GS$ = GD$(GX,GY)
+1720 BN = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+1730 FC = FC + 1:IF FC > 5 OR BK(BN,FC) = 0 THEN FC = 0
+1740 GD$(GX,GY) = CHR$(65 + BN) + CHR$(49 + FC)
+1750 REM Display tile and let that subroutine do RETURN
+1760 GOTO 1210
+
+1800 REM Convert encoded D$ to decoded C$
+1810 C = ASC(D$):D = ASC(MID$(D$, 2))
+1820 D = (D - 1) AND 63
+1830 CL = INT(D / 4):D = D AND 3
+1840 C = (C + D * 64) AND 255
+1850 C$ = CHR$(CL) + CHR$(C)
+1860 RETURN
+
+1900 REM Display instructions and grid
+1910 X = OX + 5 * TILEX + 2 + 4:Y = OY
+1920 GOSUB 1010:PRINT "IJKM TO MOVE"
+1930 X1 = X:X = X + 5:Y = Y + 1
+1940 GOSUB 1010:PRINT "CURSOR"
+1950 X = X1:Y = Y + 1
+1960 GOSUB 1010:PRINT "WASZ TO SWAP"
+1970 Y = Y + 1
+1980 GOSUB 1010:PRINT "F TO FLIP"
+
+2000 REM Display entire grid
+2010 FOR GN = 0 TO 24
+2020 GY = INT(GN / 5):GX = GN - GY * 5
+2030 GOSUB 1210
+2040 NEXT GN
+2050 RETURN
+
+2100 REM Read cursor, tiles, blocks from DATA
+2110 PRINT "Setting up tiles"
+2120 MX = 12 + 150 * TILEX * TILEY + 25 * 6 + 25:LC = 0
+
+2190 REM Read grid cursor from DATA
+2200 CR$ = "":CB$ = "":B$ = " "
+2210 FOR I = 1 TO TILEX * 2 + TILEY * 2
+2220 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";:LOCATE CSRLIN,1
+2230 READ D$:GOSUB 1810
+2240 CR$ = CR$ + MID$(C$, 2):CB$ = CB$ + B$
+2250 LC = LC + 1
+2260 NEXT I
+
+2270 REM Load tiles from DATA
+2280 READ TN:DIM TL$(TN):REM Tiles for each face
+2290 MX = 12 + TN * TILEX * TILEY + 25 * 6 + 25
+2300 FOR I = 1 TO TN
+2310 T$ = ""
+2320 FOR J = 1 TO TILEX * TILEY
+2330 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";:LOCATE CSRLIN,1
+2340 READ D$:IF LEN(D$) > 2 THEN D$ = MID$(D$, 2)
+2350 GOSUB 1810
+2360 T$ = T$ + C$
+2370 LC = LC + 1
+2380 NEXT J
+2390 TL$(I) = T$
+2400 NEXT I
+
+2410 FOR I = 0 TO 24
+2420 FOR J = 0 TO 5
+2430 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";:LOCATE CSRLIN,1
+2440 BK(I, J) = 0
+2450 LC = LC + 1
+2460 NEXT J
+2470 Y = INT(I / 5):X = I - Y * 5
+2480 GD$(X,Y) = CHR$(65+I) + "1"
+2490 NEXT I
+
+2500 REM Read blocks from DATA
+2510 READ BN:IF BN = -1 THEN RETURN
+2520 PC = INT(LC / MX * 100):PRINT STR$(PC);"%";:LOCATE CSRLIN,1
+2530 READ TN:FOR I = 1 TO TN
+2540 READ T:BK(BN-1, I-1) = T
+2550 LC = LC + 1
+2560 NEXT I
+2570 GOTO 2510
+
+3000 REM Lines 3000-3990 are the optional block and tile editor
+3010 CLS
+3020 GS$ = GD$(GX,GY)
+3030 EB = ASC(GS$) - 65:FC = ASC(MID$(GS$,2)) - 49
+3040 PRINT "BLOCK: ";EB
+
+3100 REM Display all faces of block
+3110 FOR K = 0 TO 5
+3120 GY = INT(K / 3):GX = K - GY * 3
+3130 GY = GY * 2:GX = GX * 2
+3140 TN = BK(EB, K)
+3150 IF TN > 0 THEN GOSUB 1110:X = GX*3+OX:Y = GY*3+OY-1:GOSUB 1010:PRINT TN
+3160 NEXT K
+3170 GX = 0:GY = 0:FC = 0
+3180 GOSUB 3310
+
+3200 FX = 0:FY = 0:K$ = "":GOSUB 3410
+3210 K$ = INKEY$:IF K$ = "" THEN 3210
+3220 IF K$ >= "a" AND K$ <= "z" THEN K$ = CHR$(ASC(K$) - 32)
+3230 IF K$ = "I" OR K$ = "J" OR K$ = "K" OR K$ = "M" THEN GOSUB 3410
+3240 IF K$ = CHR$(13) THEN GOSUB 3610
+3250 IF K$ >= "1" AND K$ <= "6" THEN GOSUB 3810
+3260 IF K$ = "Q" THEN GOTO 510
+3270 GOTO 3210
+
+3300 REM Display tile code of selected face
+3310 TN = BK(EB, FC)
+3320 FOR K = 1 TO TILEX * TILEY
+3330 FY = INT((K - 1) / TILEX):FX = K - 1 - FY*TILEX
+3340 GOSUB 3510
+3350 NEXT K
+3360 RETURN
+
+3400 REM Move cursor to another tile square
+3410 IF K$ = "I" THEN NY = FY - 1:IF NY < 0 THEN NY = 2
+3420 IF K$ = "J" THEN NX = FX - 1:IF NX < 0 THEN NX = 2
+3430 IF K$ = "K" THEN NX = FX + 1:IF NX > 2 THEN NX = 0
+3440 IF K$ = "M" THEN NY = FY + 1:IF NY > 2 THEN NY = 0
+3450 COLOR 0,BGCOL:GOSUB 3510
+3460 FX = NX:FY = NY
+3470 COLOR BGCOL,0:GOSUB 3510
+3480 RETURN
+
+3500 REM Display tile cursor
+3510 SQ = FY * TILEX + FX
+3520 C$ = MID$(TL$(TN), SQ*SQCH+1, SQCH):GOSUB 3910
+3530 X = FX*TILEX + OX:Y = FY*2 + OY + 11:GOSUB 1010
+3540 PRINT D$;
+3550 RETURN
+
+3600 REM Ask user for encoded character
+3610 X = 5:Y = 20:GOSUB 1010
+3620 PRINT "VALUE: ";
+3630 D$ = ""
+3640 KK$ = INKEY$:IF KK$ = "" THEN 3640
+3650 K = ASC(KK$) - 32:IF K < 0 OR K > 63 THEN 3640
+3660 PRINT KK$;
+3670 D$ = D$ + KK$:IF LEN(D$) < 2 THEN 3640
+3680 GOSUB 1010:PRINT "                   "
+3690 GOSUB 1810
+3700 SQ = FY * TILEX + FX
+3710 T$ = LEFT$(TL$(TN), SQ*SQCH) + C$ + MID$(TL$(TN), (SQ+1)*SQCH+1)
+3720 TL$(TN) = T$
+3730 GOSUB 1110
+3740 GOTO 3510:REM Let display tile cursor subroutine do RETURN
+
+3800 REM Choose another face
+3810 FC = ASC(K$) - 49
+3820 GY = INT(FC / 3):GX = FC - GY * 3
+3830 GX = GX * 2:GY = GY * 2
+3840 TN = BK(EB, FC)
+3850 GOSUB 1110:GOSUB 3310
+3860 K$ = "":GOTO 3410 :REM Let display tile code subroutine do RETURN
+
+3900 REM Convert character C$ to encoded D$
+3910 L = ASCC$):C = ASC(MID$(C$,2))
+3920 D = INT((C + 256 - 32 AND 255) / 64)
+3930 C = C - D * 64:REM Remove multiplier from C
+3940 D = (D + L * 4 + 33 AND 63) + 32:REM Make 0 equal A
+3950 D$ = CHR$(C) + CHR$(D)
+3960 RETURN
+
+4000 REM Grid cursor
+4010 DATA \C,\C,\C,\C,\C,\C,_C,_C,_C,_C,_C,_C,^C,^C,^C,]C,]C,]C
+
+5000 DATA 66 :REM Number of tiles
+5010 DATA " A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"
+5020 DATA " A"," A",\S,\S,[S,[S," A",[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S
+5030 DATA [S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S
+5040 DATA [S,[S,\S,\S," A"," A",[S,[S,[S,[S,[S," A",[S,[S,[S,[S,[S,[S
+5050 DATA " ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"," ]"
+5060 DATA [S,[S,[S,[S,[S,[S," A",[S,[S,[S,[S,[S," A"," A",_S,_S,[S,[S
+5070 DATA [S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S," A",[S,[S,_S,_S," A"," A"
+5080 DATA " A"," A"," A"," A"," A",[S," A"," A"," A"," A",\S,[S,\S,\S,\S,[S,[S,[S
+5090 DATA " A"," A"," A"," A"," A"," A",_C,[C,[C,_C,[?,_?," A"," A",_?,_?," A"," A"
+5100 DATA " A"," A",[C,[C," A"," A"," A"," A",[C,[C," A"," A",_C," A",[C,[C," A",_C
+5110 DATA [S," A"," A"," A"," A"," A",[S,\S," A"," A"," A"," A",[S,[S,[S,\S,\S,\S
+5120 DATA _S,_S,_S,[S,[S,[S," A"," A"," A"," A",_S,[S," A"," A"," A"," A"," A",[S
+5130 DATA " A"," A"," A"," A"," A"," A",_S,\S,\S,\S,\S,[S," A"," A",_S,_S,[S,[S
+5140 DATA [S,[S,\S,\S,[S,[S,[S,[S,[S,[S,[S,[S,[S,[S,_S,_S,[S,[S
+5150 DATA " A"," A"," A"," A"," A"," A",[S,\S,\S,\S,\S,_S,[S,[S,_S,_S," A"," A"
+5160 DATA [S,[S,[S,_S,_S,_S,[S,_S," A"," A"," A"," A",[S," A"," A"," A"," A"," A"
+5170 DATA " A"," A"," A"," A"," A"," A"," A",\C,\C,\C,\C,[C,[C,[C,[C,[C,[C,[C
+5180 DATA [C,[C,[C,[C,[C,[C,[C,[C,_C,_C,[C,[C,[C,_C," A"," A",_C,[C
+5190 DATA " A"," A"," A"," A"," A"," A",[C,\C,\C,\C,\C," A",[C,[C,[C,[C,[C,[C
+5200 DATA " A"," A"," A",\C,[C,[C," A"," A"," A",[C,[C,[C," A"," A",\C,[C,[C,[C
+5210 DATA [C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C," A",[C,[C,_C,_C," A"," A"
+5220 DATA [C,[C,[C,[C,[C,[C," A",[C,[C,[C,[C,[C," A"," A",_C,_C,[C,[C
+5230 DATA [C,[C,\C," A"," A"," A",[C,[C,[C," A"," A"," A",[C,[C,[C,\C," A"," A"
+5240 DATA [C,[C,[C,[C,_C," A",[C,[C,[C," A"," A"," A",[C,[C,[C,[C,\C," A"
+5250 DATA \?,_?,_?,_?,_?,\?,[?," A"," A"," A",[C,[?,_?,\?,\?,\?,\?,_?
+5260 DATA \?,_?,_?,_?,_?,\?,[?,[C," A"," A"," A",[?,_?,\?,\?,\?,\?,_?
+5270 DATA " A",_C,[C,[C,[C,[C," A"," A"," A",[C,[C,[C," A",\C,[C,[C,[C,[C
+5280 DATA [C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C
+5290 DATA \C," A"," A"," A"," A"," A",[C," A"," A"," A"," A"," A",[C,[C,\C," A"," A"," A"
+5300 DATA " A",\S," A"," A",\S," A",_S,[S,[S,[S,[S,_S," A"," A"," A"," A"," A"," A"
+5310 DATA " A"," A"," A"," A"," A",\C," A"," A"," A"," A"," A",[C," A"," A"," A",\C,[C,[C
+5320 DATA [C,[C,\C,\C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,_C,_C,[C,[C
+5330 DATA " A"," A"," A"," A"," A",[C," A"," A"," A"," A",\C,[C,\C,\C,\C,[C,[C,[C
+5340 DATA [S,[S,[S,[S,[S,[S,[S,[S,_S,_S,[S,[S,_S," A"," A"," A"," A",_S
+5350 DATA " A",\S,[S,[S,\S," A",[S,[S,[S,[S,[S,[S," A",_S,[S,[S,_S," A"
+5360 DATA [C," A"," A"," A"," A"," A",[C,\C," A"," A"," A"," A",[C,[C,[C,\C,\C,\C
+5370 DATA " A"," A"," A"," A"," A"," A",\C," A"," A"," A"," A",\C,_C,[C,\C,\C,[C,_C
+5380 DATA " A"," A",[C,[C," A"," A"," A"," A",[C,[C," A"," A"," A"," A",[C,[C," A"," A"
+5390 DATA " A"," A"," A"," A"," A"," A"," A"," A",[C,[C," A"," A"," A"," A"," A"," A"," A"," A"
+5400 DATA [C,[C,[C,[C,[C,[C," A",[C,[C,[C,[C," A",[C,[C,[C,[C,[C,[C
+5410 DATA " A"," A"," A"," A"," A"," A"," A"," A",[S,[S," A"," A"," A"," A"," A"," A"," A"," A"
+5420 DATA " A"," A"," A"," A"," A"," A"," A",\S,\S,\S,\S,[S,[S,[S,[S,[S,[S,[S
+5430 DATA " A"," A"," A",\S,[S,[S," A"," A"," A",[S,[S,[S," A"," A",\S,[S,[S,[S
+5440 DATA " A"," A",\?,\?," A"," A",\?,[?,\C,[C,[C,\C," A"," A"," A"," A"," A"," A"
+5450 DATA [S,[S,[S,_S," A"," A",[S,[S,[S," A"," A"," A",[S,[S,[S,\S," A"," A"
+5460 DATA " A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A",[S," A"," A",\S,\S,[S,[S
+5470 DATA " A"," A"," A"," A"," A"," A"," A",[S,[S,[S,[S," A"," A"," A",_S,_S," A"," A"
+5480 DATA [C,[C,[C,[C,[C,[C," A",_C,_C,_C,_C,[C," A"," A"," A"," A"," A"," A"
+5490 DATA [C,[C,[C,[C,[C,[C,[C,_C,_C,_C,_C," A"," A"," A"," A"," A"," A"," A"
+5500 DATA " A"," A",\?,\?," A"," A"," A"," A",[?,[?," A"," A"," A",\?,[?,[?,\?," A"
+5510 DATA [S,[S,\S," A"," A"," A",[S,[S,[S," A"," A"," A",[S,[S,[S,\S," A"," A"
+5520 DATA " A"," A"," A"," A"," A"," A",\S,\S,\S,\S,\S,[S,[S,[S,[S,[S,[S,[S
+5530 DATA [S,[S,[S,[S,[S,[S,[S,[S,_S,_S,[S,[S,[S,_S," A"," A",_S,[S
+5540 DATA " A"," A"," A"," A"," A"," A",[S,\S,\S,\S,\S,\S,[S,[S,[S,[S,[S,[S
+5550 DATA [S,[S,[S,_S," A"," A"," A",[S,[S," A"," A"," A"," A"," A",_S,\S," A"," A"
+5560 DATA \S," A"," A"," A"," A",\S,[S,[S,\S,\S,[S,[S,[S,[S,[S,[S,[S,[S
+5570 DATA " A"," A",_S,[S,[S,[S," A"," A"," A",[S,[S," A"," A"," A",\S,_S," A"," A"
+5580 DATA " A"," A",\C,_C," A"," A"," A",[C,[C," A"," A"," A",[C,[C,[C,\C," A"," A"
+5590 DATA " A"," A",\C,\C,[C,[C," A",[C,[C,[C,[C,[C,[C,[C,[C,[C,[C,[C
+5600 DATA [C,[C,\C,\C," A"," A",[C,[C,[C,[C,[C," A",[C,[C,[C,[C,[C,[C
+5610 DATA " A"," A",_C,\C," A"," A"," A"," A"," A",[C,[C," A"," A"," A",\C,[C,[C,[C
+5620 DATA [C,[C,[C,[C,[C,[C,[C,[C," A"," A",[C,[C,[C,[C,[C,[C,[C,[C
+5630 DATA [?,[?,_C,_C,[?,[?," A",_?,_?,_?,_?," A"," A"," A"," A"," A"," A"," A"
+5640 DATA " A"," A",\C,\C," A"," A"," A"," A",[C,[C," A"," A"," A",\C,[C,[C,\C," A"
+5650 DATA [S,[S,[S,[S,[S,[S,[S,_S,_S,_S,_S,[S," A"," A"," A"," A"," A",_S
+5660 DATA " A"," A",_C,_C," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"," A"
+
+6000 REM Which tiles are on which blocks
+6010 DATA 1,4,2,17,35,60, 2,4,3,18,48,61, 3,5,3,19,34,49,63, 4,4,3,20,43,62
+6020 DATA 5,4,4,21,36,50, 6,3,6,1,58, 7,4,3,22,37,44, 8,4,3,23,44,43
+6030 DATA 9,4,3,24,38,51, 10,4,7,25,37,3, 11,3,1,42,59, 12,4,3,26,1,63
+6040 DATA 13,5,3,27,10,52,43, 14,3,3,28,44, 15,4,1,33,6,64, 16,5,8,29,39,53,65
+6050 DATA 17,5,9,30,40,3,51, 18,5,10,34,45,54,12, 19,5,9,31,11,55,66
+6060 DATA 20,3,11,28,35, 21,3,12,28,46, 22,5,13,28,47,6,16, 23,5,14,32,41,3,56
+6070 DATA 24,6,15,28,8,1,57,6, 25,4,16,28,40,7
+6080 DATA -1
